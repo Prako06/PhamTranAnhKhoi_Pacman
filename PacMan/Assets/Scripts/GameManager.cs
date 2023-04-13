@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -36,12 +38,11 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         StartGame();
-
     }
 
     private void Update()
     {
-        if (lives <= 0 && Input.anyKeyDown)
+        if (lives <= 0 && Input.GetKeyDown(KeyCode.D))
         {
             NewGame();
         }
@@ -55,7 +56,7 @@ public class GameManager : MonoBehaviour
         audioSiren.Stop();
         audioMunch.Stop();
         audioBeginner.Play();
-        if (Input.anyKeyDown)
+        if (Input.GetKeyDown(KeyCode.D))
         {
             NewGame();
         }
@@ -78,13 +79,27 @@ public class GameManager : MonoBehaviour
         SetScore(0);
         SetLives(3);
         NewRound();
+        if (SaveManager.instance.hasLoaded)
+        {
+            score = SaveManager.instance.activeSave.score;
+            highScore = SaveManager.instance.activeSave.highscore;
+            lives = SaveManager.instance.activeSave.lives;
+            pacman.transform.position = SaveManager.instance.activeSave.pacMan;
+        }
+        else
+        {
+            SaveManager.instance.activeSave.score = score;
+            SaveManager.instance.activeSave.score = lives;
+            SaveManager.instance.activeSave.highscore = highScore;
+            SaveManager.instance.activeSave.pacMan = pacman.transform.position;
+        }
     }
 
     private void NewRound()
     {
         audioSiren.Play();
         gameOverText.enabled = false;
-
+        gameReady.enabled = false;
         foreach (Transform pellet in pellets)
         {
             pellet.gameObject.SetActive(true);
@@ -109,16 +124,11 @@ public class GameManager : MonoBehaviour
         audioVictory.Stop();
         audioDeath.Play();
         gameOverText.enabled = true;
+        gameReady.enabled = false;
 
         for (int i = 0; i < ghosts.Length; i++)
         {
             ghosts[i].gameObject.SetActive(false);
-        }
-        if (score > highScore)
-        {
-            highScore = score;
-            highScoreText.text = highScore.ToString();
-
         }
         pacman.gameObject.SetActive(false);
     }
@@ -126,6 +136,14 @@ public class GameManager : MonoBehaviour
     private void SetLives(int lives)
     {
         this.lives = lives;
+        if (SaveManager.instance.hasLoaded)
+        {
+            lives = SaveManager.instance.activeSave.lives;
+        }
+        else
+        {
+            SaveManager.instance.activeSave.lives = lives;
+        }
         livesText.text = "x" + lives.ToString();
     }
 
@@ -133,6 +151,21 @@ public class GameManager : MonoBehaviour
     {
         this.score = score;
         scoreText.text = score.ToString().PadLeft(2, '0');
+        if (score > highScore)
+        {
+            highScore = score;
+            highScoreText.text = "High Score: " + highScore.ToString();
+            SaveManager.instance.activeSave.highscore = highScore;
+            SaveManager.instance.Save();
+        }
+        if (SaveManager.instance.hasLoaded)
+        {
+            score = SaveManager.instance.activeSave.score;
+        }
+        else
+        {
+            SaveManager.instance.activeSave.score = score;
+        }
     }
 
 
@@ -171,7 +204,6 @@ public class GameManager : MonoBehaviour
         pellet.gameObject.SetActive(false);
 
         SetScore(score + pellet.points);
-
         if (!HasRemainingPellets())
         {
             pacman.gameObject.SetActive(false);
@@ -206,9 +238,8 @@ public class GameManager : MonoBehaviour
         return false;
     }
 
-    private void ResetGhostMultiplier()
+    public void ResetGhostMultiplier()
     {
         ghostMultiplier = 1;
     }
-
 }

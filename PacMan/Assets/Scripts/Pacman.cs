@@ -31,6 +31,8 @@ public class Pacman : MonoBehaviour
             movement.SetDirection(Vector2.right);
         }
 
+        SaveManager.instance.activeSave.pacMan = transform.position;
+        SaveManager.instance.Save();
         // Rotate pacman to face the movement direction
         float angle = Mathf.Atan2(movement.direction.y, movement.direction.x);
         transform.rotation = Quaternion.AngleAxis(angle * Mathf.Rad2Deg, Vector3.forward);
