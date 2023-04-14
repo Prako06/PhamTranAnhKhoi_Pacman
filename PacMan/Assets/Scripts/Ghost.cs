@@ -36,18 +36,19 @@ public class Ghost : MonoBehaviour
         chase.Disable();
         scatter.Enable();
 
-        if (home != initialBehavior) {
+        if (home != initialBehavior)
+        {
             home.Disable();
         }
 
-        if (initialBehavior != null) {
+        if (initialBehavior != null)
+        {
             initialBehavior.Enable();
         }
     }
 
     public void SetPosition(Vector3 position)
     {
-        // Keep the z-position the same since it determines draw depth
         position.z = transform.position.z;
         transform.position = position;
     }
@@ -56,9 +57,12 @@ public class Ghost : MonoBehaviour
     {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Pacman"))
         {
-            if (frightened.enabled) {
+            if (frightened.enabled)
+            {
                 FindObjectOfType<GameManager>().GhostEaten(this);
-            } else {
+            }
+            else
+            {
                 FindObjectOfType<GameManager>().PacmanEaten();
             }
         }

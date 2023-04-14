@@ -9,6 +9,7 @@ public class SaveManager : MonoBehaviour
 {
     public static SaveManager instance;
     public SaveData activeSave;
+    public SaveGhosts activeSaveGhost;
 
     public bool hasLoaded;
 
@@ -74,6 +75,45 @@ public class SaveManager : MonoBehaviour
             File.Delete(dataPath + "/" + activeSave.saveName + ".save");
         }
     }
+
+    public void SaveGhost()
+    {
+        string dataPath = Application.persistentDataPath;
+
+        var serializer = new XmlSerializer(typeof(SaveData));
+        var stream = new FileStream(dataPath + "/" + activeSaveGhost.saveName + ".save", FileMode.Create);
+        serializer.Serialize(stream, activeSaveGhost);
+        stream.Close();
+
+        Debug.Log("Saved");
+    }
+
+    public void LoadGhost()
+    {
+        string dataPath = Application.persistentDataPath;
+
+        if (System.IO.File.Exists(dataPath + "/" + activeSaveGhost + ".save"))
+        {
+            var serializer = new XmlSerializer(typeof(SaveData));
+            var stream = new FileStream(dataPath + "/" + activeSaveGhost.saveName + ".save", FileMode.Open);
+            activeSaveGhost = serializer.Deserialize(stream) as SaveGhosts;
+            stream.Close();
+
+            Debug.Log("LOADED");
+
+            hasLoaded = true;
+        }
+    }
+
+    public void DeleteGhost()
+    {
+         string dataPath = Application.persistentDataPath;
+
+        if (System.IO.File.Exists(dataPath + "/" + activeSaveGhost.saveName + ".save"))
+        {
+            File.Delete(dataPath + "/" + activeSaveGhost.saveName + ".save");
+        }
+    }
 }
 
 [System.Serializable]
@@ -84,4 +124,21 @@ public class SaveData
     public int lives = 3;
     public Vector3 pacMan;
     public int highscore;
+    public List<int> pellets;
+}
+
+[System.Serializable]
+public class SaveGhost
+{
+    public Vector3 ghostsPosition;
+    public Vector2 CurrenDirection;
+    public Vector2 nextDirection;
+    public GhostBehavior ghostsBehavior;
+}
+
+[System.Serializable]
+public class SaveGhosts
+{
+    public string saveName;
+    public List<SaveGhost> saveGhosts = new List<SaveGhost>();
 }

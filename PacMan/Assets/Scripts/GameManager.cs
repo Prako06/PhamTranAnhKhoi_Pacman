@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 
     public Ghost[] ghosts;
     public Pacman pacman;
-    public Transform pellets;
+    public List<Pellet> pellets { get; private set; }
 
     public Text gameOverText;
     public Text gameReady;
@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        pellets = new List<Pellet>();
     }
 
     private void Start()
@@ -85,14 +86,45 @@ public class GameManager : MonoBehaviour
             highScore = SaveManager.instance.activeSave.highscore;
             lives = SaveManager.instance.activeSave.lives;
             pacman.transform.position = SaveManager.instance.activeSave.pacMan;
+            for (int i = 0; i < pellets.Count; i++)
+            {
+                if (SaveManager.instance.activeSave.pellets[i] == 0)
+                {
+                    pellets[i].gameObject.SetActive(false);
+                }
+            }
+            for (int i = 0; i < ghosts.Length; i++)
+            {
+                ghosts[i].transform.position = SaveManager.instance.activeSaveGhost.saveGhosts[i].ghostsPosition;
+                ghosts[i].initialBehavior = SaveManager.instance.activeSaveGhost.saveGhosts[i].ghostsBehavior;
+                ghosts[i].movement.nextDirection = SaveManager.instance.activeSaveGhost.saveGhosts[i].nextDirection;
+                ghosts[i].movement.direction = SaveManager.instance.activeSaveGhost.saveGhosts[i].CurrenDirection;
+            }
         }
         else
         {
             SaveManager.instance.activeSave.score = score;
-            SaveManager.instance.activeSave.score = lives;
-            SaveManager.instance.activeSave.highscore = highScore;
             SaveManager.instance.activeSave.pacMan = pacman.transform.position;
+            SaveManager.instance.activeSave.lives = lives;
+            List<int> pelletLists = new List<int>();
+            foreach (var pellet in pellets)
+            {
+                if (pellet.gameObject.activeSelf == false)
+                {
+                    pelletLists.Add(0);
+                }
+                else
+                {
+                    pelletLists.Add(1);
+                }
+            }
+            SaveManager.instance.activeSave.pellets = pelletLists;
+            for (int i = 0; i < ghosts.Length; i++)
+            {
+                SaveManager.instance.activeSaveGhost.saveGhosts[i].ghostsBehavior = ghosts[i].initialBehavior;
+            }
         }
+        highScoreText.text = "High Score: " + highScore.ToString();
     }
 
     private void NewRound()
@@ -100,7 +132,7 @@ public class GameManager : MonoBehaviour
         audioSiren.Play();
         gameOverText.enabled = false;
         gameReady.enabled = false;
-        foreach (Transform pellet in pellets)
+        foreach (Pellet pellet in pellets)
         {
             pellet.gameObject.SetActive(true);
         }
@@ -131,6 +163,13 @@ public class GameManager : MonoBehaviour
             ghosts[i].gameObject.SetActive(false);
         }
         pacman.gameObject.SetActive(false);
+
+        if (score > highScore)
+        {
+            highScore = score;
+            SaveManager.instance.activeSave.highscore = highScore;
+            SaveManager.instance.Save();
+        }
     }
 
     private void SetLives(int lives)
@@ -151,13 +190,7 @@ public class GameManager : MonoBehaviour
     {
         this.score = score;
         scoreText.text = score.ToString().PadLeft(2, '0');
-        if (score > highScore)
-        {
-            highScore = score;
-            highScoreText.text = "High Score: " + highScore.ToString();
-            SaveManager.instance.activeSave.highscore = highScore;
-            SaveManager.instance.Save();
-        }
+
         if (SaveManager.instance.hasLoaded)
         {
             score = SaveManager.instance.activeSave.score;
@@ -211,6 +244,19 @@ public class GameManager : MonoBehaviour
             audioVictory.Play();
             audioSiren.Stop();
         }
+        List<int> pelletLists = new List<int>();
+        foreach (var pellet1 in pellets)
+        {
+            if (pellet1.gameObject.activeSelf == false)
+            {
+                pelletLists.Add(0);
+            }
+            else
+            {
+                pelletLists.Add(1);
+            }
+        }
+        SaveManager.instance.activeSave.pellets = pelletLists;
     }
 
     public void PowerPelletEaten(PowerPellet pellet)
@@ -227,7 +273,7 @@ public class GameManager : MonoBehaviour
 
     private bool HasRemainingPellets()
     {
-        foreach (Transform pellet in pellets)
+        foreach (Pellet pellet in pellets)
         {
             if (pellet.gameObject.activeSelf)
             {

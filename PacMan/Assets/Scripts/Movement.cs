@@ -9,8 +9,8 @@ public class Movement : MonoBehaviour
     public LayerMask obstacleLayer;
 
     public new Rigidbody2D rigidbody { get; private set; }
-    public Vector2 direction { get; private set; }
-    public Vector2 nextDirection { get; private set; }
+    public Vector2 direction;
+    public Vector2 nextDirection;
     public Vector3 startingPosition { get; private set; }
 
     private void Awake()
@@ -38,8 +38,14 @@ public class Movement : MonoBehaviour
     {
         // Try to move in the next direction while it's queued to make movements
         // more responsive
-        if (nextDirection != Vector2.zero) {
+        if (nextDirection != Vector2.zero)
+        {
             SetDirection(nextDirection);
+            SaveManager.instance.activeSaveGhost.saveGhosts[0].nextDirection = nextDirection;
+            SaveManager.instance.activeSaveGhost.saveGhosts[1].nextDirection = nextDirection;
+            SaveManager.instance.activeSaveGhost.saveGhosts[2].nextDirection = nextDirection;
+            SaveManager.instance.activeSaveGhost.saveGhosts[3].nextDirection = nextDirection;
+            SaveManager.instance.Save();
         }
     }
 
@@ -49,6 +55,11 @@ public class Movement : MonoBehaviour
         Vector2 translation = direction * speed * speedMultiplier * Time.fixedDeltaTime;
 
         rigidbody.MovePosition(position + translation);
+        SaveManager.instance.activeSaveGhost.saveGhosts[0].ghostsPosition = position;
+        SaveManager.instance.activeSaveGhost.saveGhosts[1].ghostsPosition = position;
+        SaveManager.instance.activeSaveGhost.saveGhosts[2].ghostsPosition = position;
+        SaveManager.instance.activeSaveGhost.saveGhosts[3].ghostsPosition = position;
+        SaveManager.instance.Save();
     }
 
     public void SetDirection(Vector2 direction, bool forced = false)
@@ -64,6 +75,11 @@ public class Movement : MonoBehaviour
         else
         {
             nextDirection = direction;
+            SaveManager.instance.activeSaveGhost.saveGhosts[0].CurrenDirection = nextDirection;
+            SaveManager.instance.activeSaveGhost.saveGhosts[1].CurrenDirection = nextDirection;
+            SaveManager.instance.activeSaveGhost.saveGhosts[2].CurrenDirection = nextDirection;
+            SaveManager.instance.activeSaveGhost.saveGhosts[3].CurrenDirection = nextDirection;
+            SaveManager.instance.Save();
         }
     }
 
